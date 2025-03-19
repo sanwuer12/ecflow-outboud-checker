@@ -1,0 +1,312 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=7">
+    <title>Warehouse System</title>
+    <script type="text/javascript" src="/js/jquery-1.8.3.min.js?v=stable-12.2.22"></script>
+    <script type="text/javascript" src="/js/jquery-ui-1.9.2.custom.min.js?v=stable-12.2.22"></script>
+    <script type="text/javascript" src="/js/jquery-cookie.js?v=stable-12.2.22"></script>
+    <script type="text/javascript" src="/js/util.js?v=stable-12.2.22"></script>
+    <script type="text/javascript" src="/js/lyfweb.js?v=stable-12.2.22"></script>
+    <script type="text/javascript" src="/js/account.js?v=stable-12.2.22"></script>
+    <script type="text/javascript" src="/css/login/moment.min.js?v=stable-12.2.22"></script>
+    <link rel="icon" href="https://hk-wms-oms-cdn.yunwms.com/ecwms/ntrqavm/images/2023/11/23/20231123092226_zkc90.png" type="image/x-icon">
+    <link rel="shortcut icon" href="https://hk-wms-oms-cdn.yunwms.com/ecwms/ntrqavm/images/2023/11/23/20231123092226_zkc90.png" type="image/x-icon">
+    <link type="text/css" rel="stylesheet" href="/css/ui-lightness/jquery-ui-1.9.2.custom.min.css?v=stable-12.2.22">
+    <link type="text/css" rel="stylesheet" href="/css/global.css?v=stable-12.2.22">
+    <link type="text/css" rel="stylesheet" href="/css/login/index_new.css?v=stable-12.2.22">
+    <link type="text/css" rel="stylesheet" href="/css/login/clock.css?v=stable-12.2.22">
+    <style type="text/css">
+        .login_logo {
+            min-width: 240px;
+            max-width: 320px;
+            height: 160px;
+            position: absolute;
+            top: 9px;
+            background: url(https://hk-wms-oms-cdn.yunwms.com/ecwms/ntrqavm/images/2023/11/23/20231123091712_954t7.png) no-repeat left 50%;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+<script type="text/javascript">
+    if (top.location != location) {
+        top.location.href = location.href;
+    }
+    var tm = null;
+    $(function () {
+        $("#userName").focus().css("background-color", "#FFFFCC");
+        $(".login_input").click(function () {
+            $(".login_input").css("background-color", "#FFFFFF");
+            $(this).css("background-color", "#FFFFCC");
+            $('#login_message').html('');
+        });
+        $('#login').click(function(){
+            var userPass = btoa($("#ec_login ").find("[name='userPass']").val().replace(/(^\s*)|(\s*$)/g, ""));
+            $("#ec_login ").find("[name='userPass']").val(userPass);
+            $('#sync_wrap').html('');
+            $('#login_message').html('登录中，请稍候...');
+            $.ajax({
+                type: "post",
+                async: false,
+                dataType: "json",
+                url: '/login.html',
+                data: $('#ec_login').serialize(),
+                success: function (json) {
+                    $('#login_message').html(json.message);
+                    if (json.state) {
+                        window.location.href=json.jump;
+                        return false;
+                    }else{
+                        //弱密码修改验证
+                        if (typeof json.change_pwd_token === 'string' && json.change_pwd_token !== "") {
+                            Account.changeWeakPwd(json.change_pwd_token, json.message);
+                        } else {
+                            var ifa = $('<iframe></iframe>').attr('src','/default/index/logout');
+                            $('#sync_wrap').append(ifa);
+                        }
+                    }
+
+                }
+            });
+        });
+
+        $('#select-language').change(function(){
+            self.location ='/?LANGUAGE='+this.value;
+            $(this).val(this.value);
+        });
+        (function countryTime(){
+            var $timeText = $('.time-text'),zone = '';
+            $.each($timeText,function(i,o){
+                zone = $(o).data('zone');
+                $(o).html(util.getZoneTime(zone))
+            });
+            setTimeout(countryTime, 1000);
+        })();
+
+        $('.checkDongle').click(function () {
+            lyfweb.getCurrentSn($('#dongle-sn'));
+            var sn = $('#dongle-sn').val();
+            if (sn) {
+                $('#dongle-module').show();
+                var number = Math.random();
+                number = parseInt(number * 1000000);
+                $('#auth-sn').val(number);
+                lyfweb.Lock32(sn, number);
+            } else {
+                $('#dongle-module').hide();
+            }
+        });
+        //设置语言
+        Account.set({
+            confirm: "确认",
+            changePassword: "修改密码",
+            sysOperations: '系统操作'
+        });
+    });
+    </script>
+<div class="login_head" style="position: relative;">
+    <div class="login_logo">
+    </div>
+    <div style="position: absolute;right:30px;top:12px;">
+        <div id="clock" class="light">
+            <div class="display">
+                <div class="date">2025年03月19日 周三</div>
+                <div class="alarm"></div>
+                <div class="digits"><div class="one"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span><span class="d5"></span><span class="d6"></span><span class="d7"></span></div><div class="four"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span><span class="d5"></span><span class="d6"></span><span class="d7"></span></div><div class="dots"></div><div class="five"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span><span class="d5"></span><span class="d6"></span><span class="d7"></span></div><div class="zero"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span><span class="d5"></span><span class="d6"></span><span class="d7"></span></div><div class="dots"></div><div class="zero"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span><span class="d5"></span><span class="d6"></span><span class="d7"></span></div><div class="one"><span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span><span class="d5"></span><span class="d6"></span><span class="d7"></span></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="login_main">
+    <div class="login_box">
+        <div class="login_news">
+            <dl>
+                <dt>
+                    <img src="/images/login/login_news02.gif">
+                </dt>
+                <dd>
+                    <strong>为B2C电商卖家量身打造</strong>
+                    <p>精细化的库存管理，销售平台无缝对接</p>
+                </dd>
+                <div class="clr"></div>
+            </dl>
+            <dl>
+                <dt>
+                    <img src="/images/login/login_news05.png">
+                </dt>
+                <dd>
+                    <strong>强大的第三方仓储系统</strong>
+                    <p>全流程可配置，日人均最高可操作800单，错误率万分之一</p>
+                </dd>
+                <div class="clr"></div>
+            </dl>
+            <div class="clr"></div>
+            <dl style="border-bottom: none;">
+                <dt>
+                    <img src="/images/login/login_news03.gif">
+                </dt>
+                <dd>
+                    <strong>全面的数据报表统计</strong>
+                    <p>全面的数据统计,完善的业务报表，更有效的帮助您分析行业动态</p>
+                </dd>
+                <div class="clr"></div>
+            </dl>
+        </div>
+        <div id="login-form">
+            <div>
+                <span id="system_text" title="stable-12.2.22" style="cursor:default;">WMS</span>
+            </div>
+            <form method="post" id="ec_login" action="/login.html" onsubmit="return false;">
+                <div class="row">
+                    <label class="login_label">账户名：</label>
+                    <p><input name="userName" autocomplete="off" maxlength="50" type="text" class="login_input" id="userName" style="background-color: rgb(255, 255, 204);"></p>
+                </div>
+                <div class="row">
+                    <label class="login_label">密码：</label>
+                    <p><input name="userPass" autocomplete="off" type="password" class="login_input" id="userPass"></p>
+                </div>
+                <div class="row" id="dongle-module" style="display: none">
+                    <p>
+                        <input name="dongle[sn]" autocomplete="off" type="text" class="login_input" placeholder="Dongle" id="dongle-sn" style="width:90px;" readonly="">
+                        <input name="dongle[rand]" autocomplete="off" type="text" class="login_input" placeholder="Rand" id="auth-sn" style="width:90px;" readonly="">
+                    </p>
+                </div>
+                                <div class="row">
+                    <input type="submit" id="login" value="立即登录" class="login_Btn">
+                    <div id="sys-lang" style="display:inline-block;float: right">
+                        <select id="select-language">
+                            <option value="zh_CN" selected="">中文</option>
+                            <option value="en_US">English</option>
+                            <option value="ru_RU">Pусский</option>
+                        </select>
+                                            <img class="checkDongle" src="/images/operate/icon_country_cn.gif">
+                                            </div>
+                </div>
+                <div style="color: red; font-weight: bold;text-indent:2em;" id="login_message"></div>
+            </form>
+        </div>
+        <div id="time-show">
+
+            <div class="country">
+                <img src="/images/operate/icon_country_us.gif" title="US"><span>New York</span>
+                <p>
+                    <span class="time-text" data-zone="America/New_York">2025-03-19 16:50:00</span>
+                    <span>[UTC-5]</span>
+                </p>
+            </div>
+            <div class="country">
+                <img src="/images/operate/icon_country_uk.gif" title="UK"><span>London</span>
+                <p>
+                    <span class="time-text" data-zone="Europe/London">2025-03-19 21:50:01</span>
+                    <span>[UTC 0]</span>
+                </p>
+            </div>
+            <!-- 西班牙
+            <div class="country">
+                <img src="/images/operate/icon_country_es.jpg" title="DE"/><span>Madrid</span>
+                <p>
+                    <span class="time-text" data-zone="Europe/Madrid"></span>
+                    <span>[UTC 0]</span>
+                </p>
+            </div>
+            -->
+            <div class="country">
+                <img src="/images/operate/icon_country_de.gif" title="DE"><span>Berlin</span>
+                <p>
+                    <span class="time-text" data-zone="Europe/Berlin">2025-03-19 22:50:01</span>
+                    <span>[UTC+1]</span>
+                </p>
+            </div>
+            <div class="country">
+                <img src="/images/operate/icon_country_ru.jpg" title="RU"><span>Moscow</span>
+                <p>
+                    <span class="time-text" data-zone="Europe/Moscow">2025-03-20 05:50:01</span>
+                    <span>[UTC+3]</span>
+                </p>
+            </div>
+            <div class="country">
+                <img src="/images/operate/icon_country_cn.gif" title="China"><span>Hong Kong</span>
+                <p>
+                    <span class="time-text" data-zone="Asia/Hong_Kong">2025-03-20 05:50:01</span>
+                    <span>[UTC+8]</span>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div id="sync_wrap" style="display: none;"></div>
+            <div id="footer_box">
+        <div class="footer">
+            <p>关于易仓 | 联系易仓 | 使用条款 | 保密声明</p>
+            <p>
+                Copyright 2025-10-08 ©深圳易仓科技有限公司
+                <a href="http://www.miitbeian.gov.cn/" target="_blank">粤ICP备13020851号</a>
+            </p>
+                    </div>
+    </div>
+    
+
+<script>
+    $(function(){
+        var clock = $('#clock');
+        //定义数字数组0-9
+        var digit_to_name = ['zero','one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+        //定义星期
+        //var weekday = ['Sun','Mon','Tues','Wed','Thur','Fri','Sat'];
+        var weekday = ['周日','周一','周二','周三','周四','周五','周六'];
+
+        var digits = {};
+
+        //定义时分秒位置
+        var positions = [
+            'h1', 'h2', ':', 'm1', 'm2', ':', 's1', 's2'
+        ];
+
+        //构建数字时钟的时分秒
+
+        var digit_holder = clock.find('.digits');
+
+        $.each(positions, function(){
+
+            if(this == ':'){
+                digit_holder.append('<div class="dots">');
+            }
+            else{
+                var pos = $('<div>');
+                for(var i=1; i<8; i++){
+                    pos.append('<span class="d' + i + '">');
+                }
+                digits[this] = pos;
+                digit_holder.append(pos);
+            }
+
+        });
+
+        var alarm_counter = -1;
+
+        // 让时钟跑起来
+        (function update_time(){
+
+            //调用moment.js来格式化时间
+            var now = moment().format("HHmmss");
+
+            digits.h1.attr('class', digit_to_name[now[0]]);
+            digits.h2.attr('class', digit_to_name[now[1]]);
+            digits.m1.attr('class', digit_to_name[now[2]]);
+            digits.m2.attr('class', digit_to_name[now[3]]);
+            digits.s1.attr('class', digit_to_name[now[4]]);
+            digits.s2.attr('class', digit_to_name[now[5]]);
+
+            var date = moment().format("YYYY年MM月DD日");
+            var week = weekday[moment().format('d')];
+            $(".date").html(date + ' ' + week);
+
+            // 每秒钟运行一次
+            setTimeout(update_time, 1000);
+        })();
+
+    });
+</script>
+
+
+</div></body></html>

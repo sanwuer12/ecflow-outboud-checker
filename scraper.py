@@ -45,7 +45,9 @@ def scrape_wms_data(url, username, password):
                 "input#username",
                 "input[type='text']",
                 "input[placeholder='用户名']",
-                "input.username"
+                "input.username",
+                "input[name='userName']",
+                "input#userName"
             ]
             
             username_input = None
@@ -67,7 +69,9 @@ def scrape_wms_data(url, username, password):
                 "input[name='password']",
                 "input#password",
                 "input[type='password']",
-                "input[placeholder='密码']"
+                "input[placeholder='密码']",
+                "input[name='userPass']",
+                "input#userPass"
             ]
             
             password_input = None
@@ -95,7 +99,11 @@ def scrape_wms_data(url, username, password):
                 "button:has-text('登录')",
                 "button.login",
                 "button.ant-btn-primary",
-                "button > span:has-text('登录')"
+                "button > span:has-text('登录')",
+                "input[type='submit']",
+                "input.login_Btn",
+                "input#login",
+                "input[value='立即登录']"
             ]
             
             login_button = None
@@ -275,7 +283,7 @@ def main():
     password = os.environ.get('PASSWORD')
     
     if not all([url, username, password]):
-        logger.error("环境变量未设置完全，请确保设置了 WMS_URL, WMS_USERNAME, WMS_PASSWORD")
+        logger.error("环境变量未设置完全，请确保设置了 URL, USERNAME, PASSWORD")
         return
     
     logger.info(f"使用URL: {url}")

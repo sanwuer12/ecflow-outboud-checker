@@ -14,9 +14,9 @@ jobs:
       contents: write  # 给予写入仓库内容的权限
     
     env:
-      WMS_URL: ${{ secrets.WMS_URL }}
-      WMS_USERNAME: ${{ secrets.WMS_USERNAME }}
-      WMS_PASSWORD: ${{ secrets.WMS_PASSWORD }}
+      URL: ${{ secrets.WMS_URL }}
+      USERNAME: ${{ secrets.WMS_USERNAME }}
+      PASSWORD: ${{ secrets.WMS_PASSWORD }}
     
     steps:
       - name: 检出代码
