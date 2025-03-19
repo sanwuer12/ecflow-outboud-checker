@@ -1,0 +1,50 @@
+name: 定时爬取WMS数据
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # 每30分钟运行一次
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    
+    env:
+      WMS_URL: ${{ secrets.WMS_URL }}
+      WMS_USERNAME: ${{ secrets.WMS_USERNAME }}
+      WMS_PASSWORD: ${{ secrets.WMS_PASSWORD }}
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 设置Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      
+      - name: 安装Chrome
+        run: |
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+      
+      - name: 安装依赖
+        run: |
+          pip install selenium beautifulsoup4 requests webdriver-manager
+      
+      - name: 运行爬虫脚本
+        run: python scraper.py
+      
+      - name: 配置Git
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "action@github.com"
+      
+      - name: 提交更新的数据
+        run: |
+          git add data.json
+          git commit -m "自动更新WMS数据 $(date +'%Y-%m-%d %H:%M:%S')" || echo "没有新的变更"
+          git push

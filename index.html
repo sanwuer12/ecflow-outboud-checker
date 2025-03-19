@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMS出库数据看板</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .card-header {
+            background-color: #4A6FFF;
+            color: white;
+            font-weight: bold;
+        }
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .data-row:last-child {
+            border-bottom: none;
+        }
+        .data-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .data-value {
+            font-weight: bold;
+            color: #333;
+        }
+        .update-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+        .error-message {
+            color: #dc3545;
+            padding: 15px;
+            border: 1px solid #dc3545;
+            border-radius: 5px;
+            margin-top: 15px;
+            background-color: #f8d7da;
+        }
+        #refresh-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #4A6FFF;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            border: none;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">WMS出库数据看板</h1>
+        
+        <div id="loading" class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+            <p class="mt-2">正在加载数据...</p>
+        </div>
+        
+        <div id="error" class="error-message" style="display: none;"></div>
+        
+        <div id="data-container" style="display: none;">
+            <!-- 数据卡片将在这里动态生成 -->
+        </div>
+        
+        <p id="update-time" class="update-time"></p>
+        
+        <button id="refresh-btn" onclick="fetchData()" title="刷新数据">
+            ↻
+        </button>
+    </div>
+
+    <script>
+        // 页面加载时获取数据
+        document.addEventListener('DOMContentLoaded', fetchData);
+
+        // 获取数据函数
+        function fetchData() {
+            const dataContainer = document.getElementById('data-container');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const updateTime = document.getElementById('update-time');
+            
+            // 显示加载状态
+            dataContainer.style.display = 'none';
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            
+            // 添加随机参数避免缓存
+            const cacheBuster = new Date().getTime();
+            
+            // 获取数据
+            fetch(`data.json?t=${cacheBuster}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP错误: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 清空容器
+                    dataContainer.innerHTML = '';
+                    
+                    // 处理数据
+                    if (data.data && data.data.length > 0) {
+                        // 遍历每条数据创建卡片
+                        data.data.forEach(item => {
+                            // 提取日期部分（不包含时间）
+                            const dateParts = item.date.split(' ')[0].split('-');
+                            const shortDate = `${dateParts[1]}-${dateParts[2]}`;
+                            
+                            const card = document.createElement('div');
+                            card.className = 'card';
+                            card.innerHTML = `
+                                <div class="card-header">
+                                    ${shortDate}
+                                </div>
+                                <div class="card-body">
+                                    <div class="data-row">
+                                        <span class="data-label">订单总数:</span>
+                                        <span class="data-value">${item.total_orders}</span>
+                                    </div>
+                                    <div class="data-row">
+                                        <span class="data-label">已出库:</span>
+                                        <span class="data-value">${item.outbound_count}</span>
+                                    </div>
+                                </div>
+                            `;
+                            dataContainer.appendChild(card);
+                        });
+                        
+                        // 显示更新时间
+                        const lastUpdated = new Date(data.last_updated);
+                        updateTime.textContent = `最后更新: ${lastUpdated.toLocaleString('zh-CN')}`;
+                        
+                        // 显示数据容器
+                        dataContainer.style.display = 'block';
+                    } else {
+                        throw new Error('没有可用数据');
+                    }
+                    
+                    // 隐藏加载状态
+                    loading.style.display = 'none';
+                })
+                .catch(err => {
+                    // 显示错误信息
+                    error.textContent = `无法加载数据: ${err.message}`;
+                    error.style.display = 'block';
+                    loading.style.display = 'none';
+                    console.error('获取数据出错:', err);
+                });
+        }
+    </script>
+</body>
+</html>
