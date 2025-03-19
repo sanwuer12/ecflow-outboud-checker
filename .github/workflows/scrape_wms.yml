@@ -9,6 +9,10 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     
+    # 添加权限配置
+    permissions:
+      contents: write  # 给予写入仓库内容的权限
+    
     env:
       WMS_URL: ${{ secrets.WMS_URL }}
       WMS_USERNAME: ${{ secrets.WMS_USERNAME }}
@@ -54,4 +58,6 @@ jobs:
           # 添加并提交文件
           git add data.json
           git commit -m "自动更新WMS数据 $(date +'%Y-%m-%d %H:%M:%S')" || echo "没有新的变更"
-          git push
+          
+          # 使用GITHUB_TOKEN进行推送
+          git push "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:${GITHUB_REF#refs/heads/}
