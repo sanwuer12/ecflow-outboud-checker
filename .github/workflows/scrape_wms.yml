@@ -37,7 +37,7 @@ jobs:
           python -m playwright install chromium
       
       - name: 运行爬虫脚本
-        run: python playwright_scraper.py
+        run: python scraper.py
       
       - name: 配置Git
         run: |

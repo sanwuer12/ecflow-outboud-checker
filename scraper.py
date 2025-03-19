@@ -270,9 +270,9 @@ def save_to_json(data, filename='data.json'):
 def main():
     """主函数"""
     # 从环境变量获取登录信息
-    url = os.environ.get('WMS_URL')
-    username = os.environ.get('WMS_USERNAME')
-    password = os.environ.get('WMS_PASSWORD')
+    url = os.environ.get('URL')
+    username = os.environ.get('USERNAME')
+    password = os.environ.get('PASSWORD')
     
     if not all([url, username, password]):
         logger.error("环境变量未设置完全，请确保设置了 WMS_URL, WMS_USERNAME, WMS_PASSWORD")
