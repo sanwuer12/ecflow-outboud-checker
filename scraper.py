@@ -37,25 +37,125 @@ def login_to_wms(driver, url, username, password):
         logger.info(f"正在访问登录页面: {url}")
         driver.get(url)
         
+        # 保存登录页面HTML用于调试
+        login_html = driver.page_source
+        with open("login_page.html", "w", encoding="utf-8") as f:
+            f.write(login_html)
+        logger.info("已保存登录页面HTML到 login_page.html")
+        
+        # 检查页面是否包含常见的登录元素
+        logger.info(f"页面标题: {driver.title}")
+        logger.info(f"当前URL: {driver.current_url}")
+        
         # 等待登录表单加载
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.NAME, "username"))
-        )
+        logger.info("等待登录表单加载")
+        try:
+            # 尝试不同的输入字段选择器
+            username_selectors = [
+                (By.NAME, "username"),
+                (By.ID, "username"),
+                (By.CSS_SELECTOR, "input[type='text']"),
+                (By.XPATH, "//input[@placeholder='用户名']"),
+                (By.XPATH, "//input[contains(@class, 'username')]")
+            ]
+            
+            password_selectors = [
+                (By.NAME, "password"),
+                (By.ID, "password"),
+                (By.CSS_SELECTOR, "input[type='password']"),
+                (By.XPATH, "//input[@placeholder='密码']"),
+                (By.XPATH, "//input[contains(@class, 'password')]")
+            ]
+            
+            username_field = None
+            for selector_type, selector in username_selectors:
+                try:
+                    elements = driver.find_elements(selector_type, selector)
+                    if elements:
+                        logger.info(f"找到用户名输入框: {selector_type}={selector}")
+                        username_field = elements[0]
+                        break
+                except Exception as e:
+                    logger.warning(f"选择器 {selector_type}={selector} 失败: {str(e)}")
+            
+            if not username_field:
+                logger.error("未找到用户名输入框")
+                return False
+                
+            password_field = None
+            for selector_type, selector in password_selectors:
+                try:
+                    elements = driver.find_elements(selector_type, selector)
+                    if elements:
+                        logger.info(f"找到密码输入框: {selector_type}={selector}")
+                        password_field = elements[0]
+                        break
+                except Exception as e:
+                    logger.warning(f"选择器 {selector_type}={selector} 失败: {str(e)}")
+            
+            if not password_field:
+                logger.error("未找到密码输入框")
+                return False
+            
+            # 输入用户名和密码
+            logger.info("输入用户名和密码")
+            username_field.clear()
+            username_field.send_keys(username)
+            password_field.clear()
+            password_field.send_keys(password)
+            
+            # 查找登录按钮
+            button_selectors = [
+                (By.XPATH, "//button[@type='submit']"),
+                (By.XPATH, "//button[contains(text(), '登录')]"),
+                (By.XPATH, "//button[contains(@class, 'login')]"),
+                (By.CSS_SELECTOR, "button.ant-btn-primary"),
+                (By.XPATH, "//span[contains(text(), '登录')]/parent::button")
+            ]
+            
+            login_button = None
+            for selector_type, selector in button_selectors:
+                try:
+                    elements = driver.find_elements(selector_type, selector)
+                    if elements:
+                        logger.info(f"找到登录按钮: {selector_type}={selector}")
+                        login_button = elements[0]
+                        break
+                except Exception as e:
+                    logger.warning(f"选择器 {selector_type}={selector} 失败: {str(e)}")
+            
+            if not login_button:
+                logger.error("未找到登录按钮")
+                return False
+            
+            # 点击登录按钮
+            logger.info("点击登录按钮")
+            driver.execute_script("arguments[0].click();", login_button)
+            
+            # 等待登录成功
+            logger.info("等待登录成功")
+            WebDriverWait(driver, 10).until(
+                EC.url_changes(url)
+            )
+            
+            # 保存登录后页面HTML用于调试
+            after_login_html = driver.page_source
+            with open("after_login_page.html", "w", encoding="utf-8") as f:
+                f.write(after_login_html)
+            logger.info("已保存登录后页面HTML到 after_login_page.html")
+            
+            logger.info(f"登录后页面标题: {driver.title}")
+            logger.info(f"登录后URL: {driver.current_url}")
+            
+            logger.info("登录成功")
+            return True
+            
+        except Exception as e:
+            logger.error(f"登录表单处理失败: {str(e)}")
+            import traceback
+            logger.error(f"登录表单处理异常堆栈: {traceback.format_exc()}")
+            return False
         
-        # 输入用户名和密码
-        driver.find_element(By.NAME, "username").send_keys(username)
-        driver.find_element(By.NAME, "password").send_keys(password)
-        
-        # 点击登录按钮
-        driver.find_element(By.XPATH, "//button[@type='submit']").click()
-        
-        # 等待登录成功
-        WebDriverWait(driver, 10).until(
-            EC.url_changes(url)
-        )
-        
-        logger.info("登录成功")
-        return True
     except Exception as e:
         logger.error(f"登录失败: {str(e)}")
         return False

@@ -28,19 +28,16 @@ jobs:
           python-version: '3.10'
           cache: 'pip'
       
-      - name: 安装Chrome
-        run: |
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-      
       - name: 安装依赖
         run: |
-          pip install selenium beautifulsoup4 requests webdriver-manager
+          pip install -r requirements.txt
+      
+      - name: 安装Playwright浏览器
+        run: |
+          python -m playwright install chromium
       
       - name: 运行爬虫脚本
-        run: python scraper.py
+        run: python playwright_scraper.py
       
       - name: 配置Git
         run: |
