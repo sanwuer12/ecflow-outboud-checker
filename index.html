@@ -95,6 +95,10 @@
         
         <p id="update-time" class="update-time"></p>
         
+        <div id="error-banner" class="alert alert-warning" role="alert" style="display: none; margin-top: 15px;">
+            <strong>注意:</strong> <span id="error-message"></span>
+        </div>
+        
         <button id="refresh-btn" onclick="fetchData()" title="刷新数据">
             ↻
         </button>
@@ -110,11 +114,14 @@
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
             const updateTime = document.getElementById('update-time');
+            const errorBanner = document.getElementById('error-banner');
+            const errorMessage = document.getElementById('error-message');
             
             // 显示加载状态
             dataContainer.style.display = 'none';
             loading.style.display = 'block';
             error.style.display = 'none';
+            errorBanner.style.display = 'none';
             
             // 添加随机参数避免缓存
             const cacheBuster = new Date().getTime();
@@ -165,6 +172,12 @@
                         
                         // 显示数据容器
                         dataContainer.style.display = 'block';
+                        
+                        // 检查是否有错误消息需要显示
+                        if (data.error) {
+                            errorMessage.textContent = data.error;
+                            errorBanner.style.display = 'block';
+                        }
                     } else {
                         throw new Error('没有可用数据');
                     }
