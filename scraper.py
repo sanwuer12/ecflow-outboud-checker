@@ -15,8 +15,8 @@ def scrape_wms_data(url, username, password):
     with sync_playwright() as playwright:
         logger.info("启动Playwright")
         
-        # 使用Chromium浏览器
-        browser = playwright.chromium.launch(headless=True)
+        # 使用Chromium浏览器，设置为非headless模式
+        browser = playwright.chromium.launch(headless=False)
         context = browser.new_context(viewport={"width": 1920, "height": 1080})
         page = context.new_page()
         
@@ -54,32 +54,6 @@ def scrape_wms_data(url, username, password):
             page.wait_for_load_state("networkidle")
             page.wait_for_timeout(5000)  # 再等待5秒确保数据加载完成
             
-            # 尝试点击出货管理菜单
-            logger.info("尝试点击出货管理菜单")
-            try:
-                outbound_menu = page.get_by_text("出货管理")
-                if outbound_menu:
-                    outbound_menu.click()
-                    logger.info("点击了出货管理菜单")
-                    page.wait_for_timeout(2000)
-            except:
-                logger.warning("未找到出货管理菜单")
-            
-            # 尝试点击订单下架菜单
-            logger.info("尝试点击订单下架菜单")
-            try:
-                order_menu = page.get_by_text("订单下架")
-                if order_menu:
-                    order_menu.click()
-                    logger.info("点击了订单下架菜单")
-                    page.wait_for_timeout(2000)
-            except:
-                logger.warning("未找到订单下架菜单")
-            
-            # 等待页面加载完成
-            page.wait_for_load_state("networkidle")
-            page.wait_for_timeout(5000)  # 再等待5秒确保数据加载完成
-            
             # 保存页面源码用于调试
             page_html = page.content()
             with open("page.html", "w", encoding="utf-8") as f:
@@ -109,6 +83,10 @@ def scrape_wms_data(url, username, password):
                 logger.info("保存了最终页面截图")
             except:
                 pass
+            
+            # 等待30秒后关闭浏览器，以便查看页面
+            logger.info("等待30秒后关闭浏览器...")
+            page.wait_for_timeout(30000)
             
             # 关闭浏览器
             context.close()
