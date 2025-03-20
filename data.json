@@ -1,5 +1,20 @@
 {
-  "last_updated": "2025-03-19T14:50:01.550655",
-  "data": [],
-  "error": "数据获取失败，显示的是上次成功获取的数据"
+  "last_updated": "2025-03-19T20:09:31.244021",
+  "data": [
+    {
+      "date": "2025-03-19 23:07:01",
+      "total_orders": "77",
+      "outbound_count": "85"
+    },
+    {
+      "date": "2025-03-18 23:07:16",
+      "total_orders": "83",
+      "outbound_count": "124"
+    },
+    {
+      "date": "2025-03-17 23:06:14",
+      "total_orders": "126",
+      "outbound_count": "0"
+    }
+  ]
 }
