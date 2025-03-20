@@ -37,6 +37,7 @@ def scrape_wms_data(url, username, password):
             # 等待登录成功
             logger.info("等待登录成功")
             page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(5000)  # 等待5秒确保页面完全加载
             
             # 等待可能的弹窗并关闭
             logger.info("检查是否有弹窗")
@@ -45,15 +46,22 @@ def scrape_wms_data(url, username, password):
                 if close_button:
                     close_button.click()
                     logger.info("关闭了弹窗")
+                    page.wait_for_timeout(2000)  # 等待弹窗完全关闭
             except:
                 logger.info("没有发现弹窗")
             
             # 等待页面加载完成
             page.wait_for_load_state("networkidle")
-            page.wait_for_timeout(2000)
+            page.wait_for_timeout(5000)  # 再等待5秒确保数据加载完成
+            
+            # 保存页面源码用于调试
+            page_html = page.content()
+            with open("page.html", "w", encoding="utf-8") as f:
+                f.write(page_html)
+            logger.info("已保存页面源码用于调试")
             
             # 提取数据
-            data = extract_table_data(page, page.content())
+            data = extract_table_data(page, page_html)
             
             if data:
                 logger.info("成功获取数据")
@@ -69,6 +77,13 @@ def scrape_wms_data(url, username, password):
             return []
         
         finally:
+            # 保存最终页面截图
+            try:
+                page.screenshot(path="final.png")
+                logger.info("保存了最终页面截图")
+            except:
+                pass
+            
             # 关闭浏览器
             context.close()
             browser.close()
@@ -81,6 +96,14 @@ def extract_table_data(page, html):
     base_selector = "#root > div > div.right > div > div > div.common.one > div.ant-table-wrapper > div > div > div > div > div.ant-table-body > table > tbody"
     data = []
     
+    # 检查表格容器是否存在
+    table_container = page.query_selector(base_selector)
+    if not table_container:
+        logger.error(f"未找到表格容器: {base_selector}")
+        return []
+    
+    logger.info("找到表格容器")
+    
     # 获取前3行数据
     for row in range(2, 5):  # 2,3,4 分别对应第1,2,3行
         try:
@@ -90,6 +113,11 @@ def extract_table_data(page, html):
             total_selector = f"{base_selector} > tr:nth-child({row}) > td:nth-child(2)"
             # 获取已出库数量
             outbound_selector = f"{base_selector} > tr:nth-child({row}) > td:nth-child(7)"
+            
+            logger.info(f"尝试获取第{row-1}行数据")
+            logger.info(f"日期选择器: {date_selector}")
+            logger.info(f"订单总数选择器: {total_selector}")
+            logger.info(f"已出库选择器: {outbound_selector}")
             
             date_element = page.query_selector(date_selector)
             total_element = page.query_selector(total_selector)
@@ -109,6 +137,12 @@ def extract_table_data(page, html):
                 })
             else:
                 logger.warning(f"行 {row-1} 某些单元格未找到")
+                if not date_element:
+                    logger.warning("未找到日期单元格")
+                if not total_element:
+                    logger.warning("未找到订单总数单元格")
+                if not outbound_element:
+                    logger.warning("未找到已出库单元格")
         except Exception as e:
             logger.error(f"处理行 {row-1} 时出错: {str(e)}")
             continue
